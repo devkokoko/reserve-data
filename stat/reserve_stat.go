@@ -85,7 +85,7 @@ func validateTimeWindow(fromTime, toTime uint64, freq string) (uint64, uint64, e
 	return from, to, nil
 }
 
-func (self ReserveStats) GetAssetVolume(fromTime, toTime uint64, freq, asset string) (common.StatTicks, error) {
+func (rs ReserveStats) GetAssetVolume(fromTime, toTime uint64, freq, asset string) (common.StatTicks, error) {
 	data := common.StatTicks{}
 
 	fromTime, toTime, err := validateTimeWindow(fromTime, toTime, freq)
@@ -93,16 +93,16 @@ func (self ReserveStats) GetAssetVolume(fromTime, toTime uint64, freq, asset str
 		return data, err
 	}
 
-	token, err := self.setting.GetActiveTokenByID(asset)
+	token, err := rs.setting.GetActiveTokenByID(asset)
 	if err != nil {
 		return data, fmt.Errorf("assets %s is not supported", asset)
 	}
 
-	data, err = self.statStorage.GetAssetVolume(fromTime, toTime, freq, ethereum.HexToAddress(token.Address))
+	data, err = rs.statStorage.GetAssetVolume(fromTime, toTime, freq, ethereum.HexToAddress(token.Address))
 	return data, err
 }
 
-func (self ReserveStats) GetBurnFee(fromTime, toTime uint64, freq, reserveAddr string) (common.StatTicks, error) {
+func (rs ReserveStats) GetBurnFee(fromTime, toTime uint64, freq, reserveAddr string) (common.StatTicks, error) {
 	data := common.StatTicks{}
 
 	fromTime, toTime, err := validateTimeWindow(fromTime, toTime, freq)
@@ -110,12 +110,12 @@ func (self ReserveStats) GetBurnFee(fromTime, toTime uint64, freq, reserveAddr s
 		return data, err
 	}
 
-	data, err = self.statStorage.GetBurnFee(fromTime, toTime, freq, ethereum.HexToAddress(reserveAddr))
+	data, err = rs.statStorage.GetBurnFee(fromTime, toTime, freq, ethereum.HexToAddress(reserveAddr))
 
 	return data, err
 }
 
-func (self ReserveStats) GetWalletFee(fromTime, toTime uint64, freq, reserveAddr, walletAddr string) (common.StatTicks, error) {
+func (rs ReserveStats) GetWalletFee(fromTime, toTime uint64, freq, reserveAddr, walletAddr string) (common.StatTicks, error) {
 	data := common.StatTicks{}
 
 	fromTime, toTime, err := validateTimeWindow(fromTime, toTime, freq)
@@ -123,12 +123,12 @@ func (self ReserveStats) GetWalletFee(fromTime, toTime uint64, freq, reserveAddr
 		return data, err
 	}
 
-	data, err = self.statStorage.GetWalletFee(fromTime, toTime, freq, ethereum.HexToAddress(reserveAddr), ethereum.HexToAddress(walletAddr))
+	data, err = rs.statStorage.GetWalletFee(fromTime, toTime, freq, ethereum.HexToAddress(reserveAddr), ethereum.HexToAddress(walletAddr))
 
 	return data, err
 }
 
-func (self ReserveStats) GetUserVolume(fromTime, toTime uint64, freq, userAddr string) (common.StatTicks, error) {
+func (rs ReserveStats) GetUserVolume(fromTime, toTime uint64, freq, userAddr string) (common.StatTicks, error) {
 	data := common.StatTicks{}
 
 	fromTime, toTime, err := validateTimeWindow(fromTime, toTime, freq)
@@ -136,12 +136,12 @@ func (self ReserveStats) GetUserVolume(fromTime, toTime uint64, freq, userAddr s
 		return data, err
 	}
 
-	data, err = self.statStorage.GetUserVolume(fromTime, toTime, freq, ethereum.HexToAddress(userAddr))
+	data, err = rs.statStorage.GetUserVolume(fromTime, toTime, freq, ethereum.HexToAddress(userAddr))
 
 	return data, err
 }
 
-func (self ReserveStats) GetUsersVolume(fromTime, toTime uint64, freq string, userAddrs []string) (common.UsersVolume, error) {
+func (rs ReserveStats) GetUsersVolume(fromTime, toTime uint64, freq string, userAddrs []string) (common.UsersVolume, error) {
 	data := common.StatTicks{}
 	result := common.UsersVolume{}
 
@@ -150,16 +150,16 @@ func (self ReserveStats) GetUsersVolume(fromTime, toTime uint64, freq string, us
 		return result, err
 	}
 	for _, userAddr := range userAddrs {
-		data, err = self.statStorage.GetUserVolume(fromTime, toTime, freq, ethereum.HexToAddress(userAddr))
+		data, err = rs.statStorage.GetUserVolume(fromTime, toTime, freq, ethereum.HexToAddress(userAddr))
 		result[userAddr] = data
 	}
 
 	return result, err
 }
 
-func (self ReserveStats) GetReserveVolume(fromTime, toTime uint64, freq, reserveAddr, tokenID string) (common.StatTicks, error) {
+func (rs ReserveStats) GetReserveVolume(fromTime, toTime uint64, freq, reserveAddr, tokenID string) (common.StatTicks, error) {
 	data := common.StatTicks{}
-	token, err := self.setting.GetActiveTokenByID(tokenID)
+	token, err := rs.setting.GetActiveTokenByID(tokenID)
 	if err != nil {
 		return data, err
 	}
@@ -170,11 +170,11 @@ func (self ReserveStats) GetReserveVolume(fromTime, toTime uint64, freq, reserve
 
 	reserveAddr = strings.ToLower(reserveAddr)
 	tokenAddr := strings.ToLower(token.Address)
-	data, err = self.statStorage.GetReserveVolume(fromTime, toTime, freq, ethereum.HexToAddress(reserveAddr), ethereum.HexToAddress(tokenAddr))
+	data, err = rs.statStorage.GetReserveVolume(fromTime, toTime, freq, ethereum.HexToAddress(reserveAddr), ethereum.HexToAddress(tokenAddr))
 	return data, err
 }
 
-func (self ReserveStats) GetTradeSummary(fromTime, toTime uint64, timezone int64) (common.StatTicks, error) {
+func (rs ReserveStats) GetTradeSummary(fromTime, toTime uint64, timezone int64) (common.StatTicks, error) {
 	data := common.StatTicks{}
 
 	fromTime, toTime, err := validateTimeWindow(fromTime, toTime, "D")
@@ -182,33 +182,33 @@ func (self ReserveStats) GetTradeSummary(fromTime, toTime uint64, timezone int64
 		return data, err
 	}
 
-	data, err = self.statStorage.GetTradeSummary(fromTime, toTime, timezone)
+	data, err = rs.statStorage.GetTradeSummary(fromTime, toTime, timezone)
 	return data, err
 }
 
-func (self ReserveStats) GetTradeLogs(fromTime uint64, toTime uint64) ([]common.TradeLog, error) {
+func (rs ReserveStats) GetTradeLogs(fromTime uint64, toTime uint64) ([]common.TradeLog, error) {
 	result := []common.TradeLog{}
 
 	if toTime-fromTime > maxGetRatesPeriod {
 		return result, fmt.Errorf("Time range is too broad, it must be smaller or equal to %d miliseconds", maxGetRatesPeriod)
 	}
 
-	result, err := self.logStorage.GetTradeLogs(fromTime*1000000, toTime*1000000)
+	result, err := rs.logStorage.GetTradeLogs(fromTime*1000000, toTime*1000000)
 	return result, err
 }
 
-func (self ReserveStats) GetGeoData(fromTime, toTime uint64, country string, tzparam int64) (common.StatTicks, error) {
+func (rs ReserveStats) GetGeoData(fromTime, toTime uint64, country string, tzparam int64) (common.StatTicks, error) {
 	var err error
 	result := common.StatTicks{}
 	fromTime, toTime, err = validateTimeWindow(fromTime, toTime, "D")
 	if err != nil {
 		return result, err
 	}
-	result, err = self.statStorage.GetCountryStats(fromTime, toTime, country, tzparam)
+	result, err = rs.statStorage.GetCountryStats(fromTime, toTime, country, tzparam)
 	return result, err
 }
 
-func (self ReserveStats) GetHeatMap(fromTime, toTime uint64, tzparam int64) (common.HeatmapResponse, error) {
+func (rs ReserveStats) GetHeatMap(fromTime, toTime uint64, tzparam int64) (common.HeatmapResponse, error) {
 	result := common.Heatmap{}
 	var arrResult common.HeatmapResponse
 	var err error
@@ -216,7 +216,7 @@ func (self ReserveStats) GetHeatMap(fromTime, toTime uint64, tzparam int64) (com
 	if err != nil {
 		return arrResult, err
 	}
-	countries, err := self.statStorage.GetCountries()
+	countries, err := rs.statStorage.GetCountries()
 	if err != nil {
 		return arrResult, err
 	}
@@ -224,7 +224,7 @@ func (self ReserveStats) GetHeatMap(fromTime, toTime uint64, tzparam int64) (com
 	// get stats
 	for _, c := range countries {
 		var cStats common.StatTicks
-		if cStats, err = self.statStorage.GetCountryStats(fromTime, toTime, c, tzparam); err != nil {
+		if cStats, err = rs.statStorage.GetCountryStats(fromTime, toTime, c, tzparam); err != nil {
 			return arrResult, err
 		}
 		for _, stat := range cStats {
@@ -260,25 +260,25 @@ func (self ReserveStats) GetHeatMap(fromTime, toTime uint64, tzparam int64) (com
 	return arrResult, err
 }
 
-func (self ReserveStats) GetTokenHeatmap(fromTime, toTime uint64, tokenStr, freq string) (common.TokenHeatmapResponse, error) {
+func (rs ReserveStats) GetTokenHeatmap(fromTime, toTime uint64, tokenStr, freq string) (common.TokenHeatmapResponse, error) {
 	result := common.CountryTokenHeatmap{}
 	var arrResult common.TokenHeatmapResponse
 	fromTime, toTime, err := validateTimeWindow(fromTime, toTime, "D")
 	if err != nil {
 		return arrResult, err
 	}
-	countries, err := self.statStorage.GetCountries()
+	countries, err := rs.statStorage.GetCountries()
 	if err != nil {
 		return arrResult, err
 	}
-	token, err := self.setting.GetActiveTokenByID(tokenStr)
+	token, err := rs.setting.GetActiveTokenByID(tokenStr)
 	if err != nil {
 		return arrResult, err
 	}
 	for _, country := range countries {
 		var stats common.StatTicks
 		key := fmt.Sprintf("%s_%s", country, strings.ToLower(token.Address))
-		if stats, err = self.statStorage.GetTokenHeatmap(fromTime, toTime, key, freq); err != nil {
+		if stats, err = rs.statStorage.GetTokenHeatmap(fromTime, toTime, key, freq); err != nil {
 			return arrResult, err
 		}
 		for _, stat := range stats {
@@ -306,17 +306,17 @@ func (self ReserveStats) GetTokenHeatmap(fromTime, toTime uint64, tokenStr, freq
 	return arrResult, err
 }
 
-func (self ReserveStats) GetCountries() ([]string, error) {
-	result, _ := self.statStorage.GetCountries()
+func (rs ReserveStats) GetCountries() ([]string, error) {
+	result, _ := rs.statStorage.GetCountries()
 	return result, nil
 }
 
-func (self ReserveStats) GetCatLogs(fromTime uint64, toTime uint64) ([]common.SetCatLog, error) {
-	return self.logStorage.GetCatLogs(fromTime, toTime)
+func (rs ReserveStats) GetCatLogs(fromTime uint64, toTime uint64) ([]common.SetCatLog, error) {
+	return rs.logStorage.GetCatLogs(fromTime, toTime)
 }
 
-func (self ReserveStats) GetPendingAddresses() ([]string, error) {
-	addresses, err := self.userStorage.GetPendingAddresses()
+func (rs ReserveStats) GetPendingAddresses() ([]string, error) {
+	addresses, err := rs.userStorage.GetPendingAddresses()
 	if err != nil {
 		return nil, err
 	}
@@ -327,16 +327,16 @@ func (self ReserveStats) GetPendingAddresses() ([]string, error) {
 	return result, nil
 }
 
-func (self ReserveStats) Run() error {
-	return self.fetcher.Run()
+func (rs ReserveStats) Run() error {
+	return rs.fetcher.Run()
 }
 
-func (self ReserveStats) Stop() error {
-	return self.fetcher.Stop()
+func (rs ReserveStats) Stop() error {
+	return rs.fetcher.Stop()
 }
 
-func (self ReserveStats) GetCapByAddress(addr ethereum.Address) (*common.UserCap, error) {
-	category, err := self.userStorage.GetCategory(addr)
+func (rs ReserveStats) GetCapByAddress(addr ethereum.Address) (*common.UserCap, error) {
+	category, err := rs.userStorage.GetCategory(addr)
 	if err != nil {
 		return nil, err
 	}
@@ -372,8 +372,8 @@ func (rs ReserveStats) GetTxCapByAddress(addr ethereum.Address) (*big.Int, bool,
 	return txLimit, kyced, nil
 }
 
-func (self ReserveStats) GetCapByUser(userID string) (*common.UserCap, error) {
-	addresses, _, err := self.userStorage.GetAddressesOfUser(userID)
+func (rs ReserveStats) GetCapByUser(userID string) (*common.UserCap, error) {
+	addresses, _, err := rs.userStorage.GetAddressesOfUser(userID)
 	if err != nil {
 		return nil, err
 	}
@@ -381,7 +381,7 @@ func (self ReserveStats) GetCapByUser(userID string) (*common.UserCap, error) {
 		log.Printf("Couldn't find any associated addresses. User %s is not kyced.", userID)
 		return common.NonKycedCap(), nil
 	}
-	return self.GetCapByAddress(addresses[0])
+	return rs.GetCapByAddress(addresses[0])
 }
 
 func isDuplicate(currentRate, latestRate common.ReserveRates) bool {
@@ -397,24 +397,24 @@ func isDuplicate(currentRate, latestRate common.ReserveRates) bool {
 	}
 	return true
 }
-func (self ReserveStats) GetWalletStats(fromTime uint64, toTime uint64, walletAddr string, timezone int64) (common.StatTicks, error) {
+func (rs ReserveStats) GetWalletStats(fromTime uint64, toTime uint64, walletAddr string, timezone int64) (common.StatTicks, error) {
 	fromTime, toTime, err := validateTimeWindow(fromTime, toTime, "D")
 	if err != nil {
 		return nil, err
 	}
 	walletAddr = strings.ToLower(walletAddr)
-	return self.statStorage.GetWalletStats(fromTime, toTime, ethereum.HexToAddress(walletAddr), timezone)
+	return rs.statStorage.GetWalletStats(fromTime, toTime, ethereum.HexToAddress(walletAddr), timezone)
 }
 
-func (self ReserveStats) GetWalletAddresses() ([]string, error) {
-	return self.statStorage.GetWalletAddresses()
+func (rs ReserveStats) GetWalletAddresses() ([]string, error) {
+	return rs.statStorage.GetWalletAddresses()
 }
 
-func (self ReserveStats) GetReserveRates(fromTime, toTime uint64, reserveAddr ethereum.Address) ([]common.ReserveRates, error) {
+func (rs ReserveStats) GetReserveRates(fromTime, toTime uint64, reserveAddr ethereum.Address) ([]common.ReserveRates, error) {
 	var result []common.ReserveRates
 	var err error
 	var rates []common.ReserveRates
-	rates, err = self.rateStorage.GetReserveRates(fromTime, toTime, reserveAddr)
+	rates, err = rs.rateStorage.GetReserveRates(fromTime, toTime, reserveAddr)
 	latest := common.ReserveRates{}
 	for _, rate := range rates {
 		if !isDuplicate(rate, latest) {
@@ -430,13 +430,13 @@ func (self ReserveStats) GetReserveRates(fromTime, toTime uint64, reserveAddr et
 	return result, err
 }
 
-func (self ReserveStats) GetUserList(fromTime, toTime uint64, timezone int64) (common.UserListResponse, error) {
+func (rs ReserveStats) GetUserList(fromTime, toTime uint64, timezone int64) (common.UserListResponse, error) {
 	fromTime, toTime, err := validateTimeWindow(fromTime, toTime, "D")
 	if err != nil {
 		return []common.UserInfo{}, err
 	}
 	result := common.UserListResponse{}
-	data, err := self.statStorage.GetUserList(fromTime, toTime, timezone)
+	data, err := rs.statStorage.GetUserList(fromTime, toTime, timezone)
 	for _, v := range data {
 		result = append(result, v)
 	}
@@ -444,16 +444,16 @@ func (self ReserveStats) GetUserList(fromTime, toTime uint64, timezone int64) (c
 	return result, err
 }
 
-func (self ReserveStats) UpdateUserAddresses(userID string, addrs []ethereum.Address, timestamps []uint64) error {
+func (rs ReserveStats) UpdateUserAddresses(userID string, addrs []ethereum.Address, timestamps []uint64) error {
 	addresses := []ethereum.Address{}
 	for _, addr := range addrs {
 		addresses = append(addresses, addr)
 	}
-	return self.userStorage.UpdateUserAddresses(userID, addresses, timestamps)
+	return rs.userStorage.UpdateUserAddresses(userID, addresses, timestamps)
 }
 
-func (self ReserveStats) ExceedDailyLimit(address ethereum.Address) (bool, error) {
-	user, _, err := self.userStorage.GetUserOfAddress(address)
+func (rs ReserveStats) ExceedDailyLimit(address ethereum.Address) (bool, error) {
+	user, _, err := rs.userStorage.GetUserOfAddress(address)
 	log.Printf("got user %s for address %s", user, strings.ToLower(address.Hex()))
 	if err != nil {
 		return false, err
@@ -464,7 +464,7 @@ func (self ReserveStats) ExceedDailyLimit(address ethereum.Address) (bool, error
 		addrs = append(addrs, strings.ToLower(address.Hex()))
 	} else {
 		var addrs []ethereum.Address
-		addrs, _, err = self.userStorage.GetAddressesOfUser(user)
+		addrs, _, err = rs.userStorage.GetAddressesOfUser(user)
 		log.Printf("got addresses %v for address %s", addrs, strings.ToLower(address.Hex()))
 		if err != nil {
 			return false, err
@@ -474,7 +474,7 @@ func (self ReserveStats) ExceedDailyLimit(address ethereum.Address) (bool, error
 	var totalVolume float64
 	for _, addr := range addrs {
 		var volumeStats common.StatTicks
-		volumeStats, err = self.GetUserVolume(today-1, today, "D", addr)
+		volumeStats, err = rs.GetUserVolume(today-1, today, "D", addr)
 		if err == nil {
 			log.Printf("volumes: %+v", volumeStats)
 			if len(volumeStats) == 0 {
@@ -495,7 +495,7 @@ func (self ReserveStats) ExceedDailyLimit(address ethereum.Address) (bool, error
 			log.Printf("Getting volumes for %s failed, err: %s", strings.ToLower(address.Hex()), err.Error())
 		}
 	}
-	cap, err := self.GetCapByAddress(address)
+	cap, err := rs.GetCapByAddress(address)
 	if err == nil && totalVolume >= cap.DailyLimit {
 		return true, nil
 	} else {
@@ -503,14 +503,14 @@ func (self ReserveStats) ExceedDailyLimit(address ethereum.Address) (bool, error
 	}
 }
 
-func (self ReserveStats) UpdatePriceAnalyticData(timestamp uint64, value []byte) error {
-	return self.analyticStorage.UpdatePriceAnalyticData(timestamp, value)
+func (rs ReserveStats) UpdatePriceAnalyticData(timestamp uint64, value []byte) error {
+	return rs.analyticStorage.UpdatePriceAnalyticData(timestamp, value)
 }
 
-func (self ReserveStats) GetPriceAnalyticData(fromTime uint64, toTime uint64) ([]common.AnalyticPriceResponse, error) {
-	return self.analyticStorage.GetPriceAnalyticData(fromTime, toTime)
+func (rs ReserveStats) GetPriceAnalyticData(fromTime uint64, toTime uint64) ([]common.AnalyticPriceResponse, error) {
+	return rs.analyticStorage.GetPriceAnalyticData(fromTime, toTime)
 }
 
-func (self ReserveStats) GetFeeSetRateByDay(fromTime uint64, toTime uint64) ([]common.FeeSetRate, error) {
-	return self.feeSetRateStorage.GetFeeSetRateByDay(fromTime, toTime)
+func (rs ReserveStats) GetFeeSetRateByDay(fromTime uint64, toTime uint64) ([]common.FeeSetRate, error) {
+	return rs.feeSetRateStorage.GetFeeSetRateByDay(fromTime, toTime)
 }

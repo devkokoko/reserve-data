@@ -78,9 +78,9 @@ func NewBoltStatStorage(path string) (*BoltStatStorage, error) {
 	return storage, nil
 }
 
-func (self *BoltStatStorage) SetLastProcessedTradeLogTimepoint(statType string, timepoint uint64) error {
+func (bss *BoltStatStorage) SetLastProcessedTradeLogTimepoint(statType string, timepoint uint64) error {
 	var err error
-	err = self.db.Update(func(tx *bolt.Tx) error {
+	err = bss.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(tradeLogProcessorState))
 		if b == nil {
 			return errors.New("Cannot find last processed bucket")
@@ -91,10 +91,10 @@ func (self *BoltStatStorage) SetLastProcessedTradeLogTimepoint(statType string, 
 	return err
 }
 
-func (self *BoltStatStorage) GetLastProcessedTradeLogTimepoint(statType string) (uint64, error) {
+func (bss *BoltStatStorage) GetLastProcessedTradeLogTimepoint(statType string) (uint64, error) {
 	var result uint64
 	var err error
-	err = self.db.View(func(tx *bolt.Tx) error {
+	err = bss.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(tradeLogProcessorState))
 		if b == nil {
 			return errors.New("Cannot find last processed bucket")
@@ -150,9 +150,9 @@ func getTimestampByFreq(t uint64, freq string) (result []byte) {
 	return
 }
 
-func (self *BoltStatStorage) SetWalletAddress(ethWalletAddr ethereum.Address) (err error) {
+func (bss *BoltStatStorage) SetWalletAddress(ethWalletAddr ethereum.Address) (err error) {
 	walletAddr := common.AddrToString(ethWalletAddr)
-	err = self.db.Update(func(tx *bolt.Tx) error {
+	err = bss.db.Update(func(tx *bolt.Tx) error {
 		walletBucket := tx.Bucket([]byte(walletAddressBucket))
 		if walletBucket == nil {
 			return fmt.Errorf("cannot find bucket %s", walletAddressBucket)
@@ -164,10 +164,10 @@ func (self *BoltStatStorage) SetWalletAddress(ethWalletAddr ethereum.Address) (e
 
 // GetWalletAddresses return a set of wallet address currently in core.
 // Return empty result if there is no wallet address curently
-func (self *BoltStatStorage) GetWalletAddresses() ([]string, error) {
+func (bss *BoltStatStorage) GetWalletAddresses() ([]string, error) {
 	var result []string
 	var err error
-	err = self.db.View(func(tx *bolt.Tx) error {
+	err = bss.db.View(func(tx *bolt.Tx) error {
 		walletBucket := tx.Bucket([]byte(walletAddressBucket))
 		if walletBucket == nil {
 			return fmt.Errorf("GetWalletAddresses cannot get bucket %s", walletAddressBucket)
@@ -181,8 +181,8 @@ func (self *BoltStatStorage) GetWalletAddresses() ([]string, error) {
 	return result, err
 }
 
-func (self *BoltStatStorage) SetBurnFeeStat(burnFeeStats map[string]common.BurnFeeStatsTimeZone, lastProcessTimePoint uint64) error {
-	err := self.db.Update(func(tx *bolt.Tx) error {
+func (bss *BoltStatStorage) SetBurnFeeStat(burnFeeStats map[string]common.BurnFeeStatsTimeZone, lastProcessTimePoint uint64) error {
+	err := bss.db.Update(func(tx *bolt.Tx) error {
 		for key, timezoneData := range burnFeeStats {
 			key = strings.ToLower(key)
 			// This is somewhat odd. There is no burnFee bucket? There should be a burnFee bucket and nest these timeZone bucket inside
@@ -230,8 +230,8 @@ func (self *BoltStatStorage) SetBurnFeeStat(burnFeeStats map[string]common.BurnF
 	return err
 }
 
-func (self *BoltStatStorage) SetVolumeStat(volumeStats map[string]common.VolumeStatsTimeZone, lastProcessTimePoint uint64) error {
-	err := self.db.Update(func(tx *bolt.Tx) error {
+func (bss *BoltStatStorage) SetVolumeStat(volumeStats map[string]common.VolumeStatsTimeZone, lastProcessTimePoint uint64) error {
+	err := bss.db.Update(func(tx *bolt.Tx) error {
 		for asset, freqData := range volumeStats {
 			asset = strings.ToLower(asset)
 			// TODO: There should be a volume bucket and Nested these asset bucket inside
@@ -297,8 +297,8 @@ func addMetricData(currentData, stat common.MetricStats) common.MetricStats {
 	return currentData
 }
 
-func (self *BoltStatStorage) SetWalletStat(stats map[string]common.MetricStatsTimeZone, lastProcessTimePoint uint64) error {
-	err := self.db.Update(func(tx *bolt.Tx) error {
+func (bss *BoltStatStorage) SetWalletStat(stats map[string]common.MetricStatsTimeZone, lastProcessTimePoint uint64) error {
+	err := bss.db.Update(func(tx *bolt.Tx) error {
 		for wallet, timeZoneStat := range stats {
 			wallet = strings.ToLower(wallet)
 			b, uErr := tx.CreateBucketIfNotExists([]byte(wallet))
@@ -345,11 +345,11 @@ func (self *BoltStatStorage) SetWalletStat(stats map[string]common.MetricStatsTi
 // GetWalletStats returns StatTicks for a specific address in a specific time range.
 // If the wallet/timezone data isn't available, return empty result and no error.
 // If the data is corrupted, error is returned.
-func (self *BoltStatStorage) GetWalletStats(fromTime uint64, toTime uint64, ethWalletAddr ethereum.Address, timezone int64) (common.StatTicks, error) {
+func (bss *BoltStatStorage) GetWalletStats(fromTime uint64, toTime uint64, ethWalletAddr ethereum.Address, timezone int64) (common.StatTicks, error) {
 	walletAddr := common.AddrToString(ethWalletAddr)
 	result := common.StatTicks{}
 	tzstring := fmt.Sprintf("%s%d", stat.TimezoneBucketPrefix, timezone)
-	err := self.db.View(func(tx *bolt.Tx) error {
+	err := bss.db.View(func(tx *bolt.Tx) error {
 		walletBk := tx.Bucket([]byte(walletAddr))
 		if walletBk == nil {
 			log.Printf("GetWalletStats cannot find bucket %s", walletAddr)
@@ -376,10 +376,10 @@ func (self *BoltStatStorage) GetWalletStats(fromTime uint64, toTime uint64, ethW
 	return result, err
 }
 
-func (self *BoltStatStorage) SetCountry(country string) error {
+func (bss *BoltStatStorage) SetCountry(country string) error {
 	var err error
 	country = strings.ToUpper(country)
-	err = self.db.Update(func(tx *bolt.Tx) error {
+	err = bss.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(countryBucket))
 		if b == nil {
 			return fmt.Errorf("cannot find bucket %s", countryBucket)
@@ -391,10 +391,10 @@ func (self *BoltStatStorage) SetCountry(country string) error {
 
 // GetCountries returns a list of string representing all countries available in stat
 // It return err if ther is no data.
-func (self *BoltStatStorage) GetCountries() ([]string, error) {
+func (bss *BoltStatStorage) GetCountries() ([]string, error) {
 	countries := []string{}
 	var err error
-	err = self.db.View(func(tx *bolt.Tx) error {
+	err = bss.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(countryBucket))
 		if b == nil {
 			return fmt.Errorf("cannot find bucket %s", countryBucket)
@@ -408,9 +408,9 @@ func (self *BoltStatStorage) GetCountries() ([]string, error) {
 	return countries, err
 }
 
-func (self *BoltStatStorage) SetCountryStat(stats map[string]common.MetricStatsTimeZone, lastProcessTimePoint uint64) error {
+func (bss *BoltStatStorage) SetCountryStat(stats map[string]common.MetricStatsTimeZone, lastProcessTimePoint uint64) error {
 	var err error
-	err = self.db.Update(func(tx *bolt.Tx) error {
+	err = bss.db.Update(func(tx *bolt.Tx) error {
 		for country, timeZoneStat := range stats {
 			country = strings.ToUpper(country)
 			b, uErr := tx.CreateBucketIfNotExists([]byte(country))
@@ -460,11 +460,11 @@ func (self *BoltStatStorage) SetCountryStat(stats map[string]common.MetricStatsT
 // GetCountryStats returns StatTicks for a specific country in a specific time range.
 // If the data is not available, return empty result and no error.
 // If the data is corrupted, error is returned.
-func (self *BoltStatStorage) GetCountryStats(fromTime, toTime uint64, country string, timezone int64) (common.StatTicks, error) {
+func (bss *BoltStatStorage) GetCountryStats(fromTime, toTime uint64, country string, timezone int64) (common.StatTicks, error) {
 	result := common.StatTicks{}
 	tzstring := fmt.Sprintf("%s%d", stat.TimezoneBucketPrefix, timezone)
 	country = strings.ToUpper(country)
-	err := self.db.View(func(tx *bolt.Tx) error {
+	err := bss.db.View(func(tx *bolt.Tx) error {
 		countryBk := tx.Bucket([]byte(country))
 		if countryBk == nil {
 			log.Printf("GetCountryStats cannot find bucket %s", country)
@@ -492,7 +492,7 @@ func (self *BoltStatStorage) GetCountryStats(fromTime, toTime uint64, country st
 	return result, err
 }
 
-func (self *BoltStatStorage) DidTrade(b *bolt.Bucket, userAddr string, timepoint uint64) bool {
+func (bss *BoltStatStorage) DidTrade(b *bolt.Bucket, userAddr string, timepoint uint64) bool {
 	result := false
 	v := b.Get([]byte(userAddr))
 	if v != nil {
@@ -504,8 +504,8 @@ func (self *BoltStatStorage) DidTrade(b *bolt.Bucket, userAddr string, timepoint
 	return result
 }
 
-func (self *BoltStatStorage) SetFirstTradeEver(userTradeLog *[]common.TradeLog) error {
-	err := self.db.Update(func(tx *bolt.Tx) error {
+func (bss *BoltStatStorage) SetFirstTradeEver(userTradeLog *[]common.TradeLog) error {
+	err := bss.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(userFirstTradeEver))
 		if b == nil {
 			return fmt.Errorf("cannot find bucket %s", userFirstTradeEver)
@@ -513,7 +513,7 @@ func (self *BoltStatStorage) SetFirstTradeEver(userTradeLog *[]common.TradeLog) 
 		for _, trade := range *userTradeLog {
 			userAddr := common.AddrToString(trade.UserAddress)
 			timepoint := trade.Timestamp
-			if !self.DidTrade(b, userAddr, timepoint) {
+			if !bss.DidTrade(b, userAddr, timepoint) {
 				timestampByte := boltutil.Uint64ToBytes(timepoint)
 				if pErr := b.Put([]byte(userAddr), timestampByte); pErr != nil {
 					log.Printf("Cannot put data: %s", pErr.Error())
@@ -528,9 +528,9 @@ func (self *BoltStatStorage) SetFirstTradeEver(userTradeLog *[]common.TradeLog) 
 // GetAllFirstTradeEver returns a map of ethereumAddress to the timepoint where that address first traded
 // If the data is not available, return empty result and no error.
 // If the wrapper bucket is not available, error is returned.
-func (self *BoltStatStorage) GetAllFirstTradeEver() (map[ethereum.Address]uint64, error) {
+func (bss *BoltStatStorage) GetAllFirstTradeEver() (map[ethereum.Address]uint64, error) {
 	result := map[ethereum.Address]uint64{}
-	err := self.db.View(func(tx *bolt.Tx) error {
+	err := bss.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(userFirstTradeEver))
 		if b == nil {
 			return fmt.Errorf("canot find bucket %s", userFirstTradeEver)
@@ -545,7 +545,7 @@ func (self *BoltStatStorage) GetAllFirstTradeEver() (map[ethereum.Address]uint64
 	return result, err
 }
 
-func (self *BoltStatStorage) DidTradeInDay(userDailyBucket *bolt.Bucket, userAddr string, timepoint uint64) bool {
+func (bss *BoltStatStorage) DidTradeInDay(userDailyBucket *bolt.Bucket, userAddr string, timepoint uint64) bool {
 	result := false
 	v := userDailyBucket.Get([]byte(userAddr))
 	if v != nil {
@@ -559,10 +559,10 @@ func (self *BoltStatStorage) DidTradeInDay(userDailyBucket *bolt.Bucket, userAdd
 
 // GetFirstTradeInDay return the timepoint when a User first trade in a certain day.
 // It return error if the data can not be found.
-func (self *BoltStatStorage) GetFirstTradeInDay(ethUserAddr ethereum.Address, timepoint uint64, timezone int64) (uint64, error) {
+func (bss *BoltStatStorage) GetFirstTradeInDay(ethUserAddr ethereum.Address, timepoint uint64, timezone int64) (uint64, error) {
 	var result uint64
 	userAddr := common.AddrToString(ethUserAddr)
-	err := self.db.View(func(tx *bolt.Tx) error {
+	err := bss.db.View(func(tx *bolt.Tx) error {
 		userStatBk := tx.Bucket([]byte(userStatBucket))
 		if userStatBk == nil {
 			return fmt.Errorf("cannot find bucket %s", userStatBucket)
@@ -589,8 +589,8 @@ func (self *BoltStatStorage) GetFirstTradeInDay(ethUserAddr ethereum.Address, ti
 	return result, err
 }
 
-func (self *BoltStatStorage) SetFirstTradeInDay(tradeLogs *[]common.TradeLog) error {
-	err := self.db.Update(func(tx *bolt.Tx) error {
+func (bss *BoltStatStorage) SetFirstTradeInDay(tradeLogs *[]common.TradeLog) error {
+	err := bss.db.Update(func(tx *bolt.Tx) error {
 		userStatBk := tx.Bucket([]byte(userStatBucket))
 		if userStatBk == nil {
 			return fmt.Errorf("cannot find bucket %s", userStatBucket)
@@ -609,7 +609,7 @@ func (self *BoltStatStorage) SetFirstTradeInDay(tradeLogs *[]common.TradeLog) er
 				if uErr != nil {
 					return uErr
 				}
-				if !self.DidTradeInDay(userDailyBucket, userAddr, timepoint) {
+				if !bss.DidTradeInDay(userDailyBucket, userAddr, timepoint) {
 					timestampByte := boltutil.Uint64ToBytes(timepoint)
 					if pErr := userDailyBucket.Put([]byte(userAddr), timestampByte); pErr != nil {
 						log.Printf("Cannot put user daily first trade: %s", pErr.Error())
@@ -622,8 +622,8 @@ func (self *BoltStatStorage) SetFirstTradeInDay(tradeLogs *[]common.TradeLog) er
 	return err
 }
 
-func (self *BoltStatStorage) SetUserList(userInfos map[string]common.UserInfoTimezone, lastProcessTimePoint uint64) error {
-	err := self.db.Update(func(tx *bolt.Tx) error {
+func (bss *BoltStatStorage) SetUserList(userInfos map[string]common.UserInfoTimezone, lastProcessTimePoint uint64) error {
+	err := bss.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(userListBucket))
 		if b == nil {
 			return fmt.Errorf("cannot find bucket %s", userListBucket)
@@ -680,9 +680,9 @@ func (self *BoltStatStorage) SetUserList(userInfos map[string]common.UserInfoTim
 // GetUserList returns a map of user address to UserInfo in a specific time range.
 // If the data is not available, return empty result and no error.
 // If the data is corrupted or wrapper bucket is not found, error is returned.
-func (self *BoltStatStorage) GetUserList(fromTime, toTime uint64, timezone int64) (map[string]common.UserInfo, error) {
+func (bss *BoltStatStorage) GetUserList(fromTime, toTime uint64, timezone int64) (map[string]common.UserInfo, error) {
 	result := map[string]common.UserInfo{}
-	err := self.db.View(func(tx *bolt.Tx) error {
+	err := bss.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(userListBucket))
 		if b == nil {
 			return fmt.Errorf("GetUserList cannot find bucket %s", userListBucket)
@@ -732,10 +732,10 @@ func (self *BoltStatStorage) GetUserList(fromTime, toTime uint64, timezone int64
 //GetAssetVolume returns stat data for an asset address with specific frequency in a specific time range.
 //If the data is not available, return empty result and no error.
 //If the data is corrupted , error is returned.
-func (self *BoltStatStorage) GetAssetVolume(fromTime uint64, toTime uint64, freq string, ethAssetAddr ethereum.Address) (common.StatTicks, error) {
+func (bss *BoltStatStorage) GetAssetVolume(fromTime uint64, toTime uint64, freq string, ethAssetAddr ethereum.Address) (common.StatTicks, error) {
 	result := common.StatTicks{}
 	assetAddr := common.AddrToString(ethAssetAddr)
-	err := self.db.View(func(tx *bolt.Tx) error {
+	err := bss.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(assetAddr))
 		if b == nil {
 			log.Printf("GetAssetVolume cannot find bucket %s", assetAddr)
@@ -770,10 +770,10 @@ func (self *BoltStatStorage) GetAssetVolume(fromTime uint64, toTime uint64, freq
 //GetBurnFee returns stat data for an address with specific frequency in a specific time range.
 //If the data is not available, return empty result and no error.
 //If the data is corrupted , error is returned.
-func (self *BoltStatStorage) GetBurnFee(fromTime uint64, toTime uint64, freq string, ethReserveAddr ethereum.Address) (common.StatTicks, error) {
+func (bss *BoltStatStorage) GetBurnFee(fromTime uint64, toTime uint64, freq string, ethReserveAddr ethereum.Address) (common.StatTicks, error) {
 	result := common.StatTicks{}
 	reserveAddr := common.AddrToString(ethReserveAddr)
-	err := self.db.View(func(tx *bolt.Tx) error {
+	err := bss.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(reserveAddr))
 		if b == nil {
 			log.Printf("GetBurnFee cannot find bucket %s", reserveAddr)
@@ -809,10 +809,10 @@ func (self *BoltStatStorage) GetBurnFee(fromTime uint64, toTime uint64, freq str
 //GetWalletFee returns stat data for an address pair with specific frequency in a specific time range.
 //If the data is not available, return empty result and no error.
 //If the data is corrupted , error is returned.
-func (self *BoltStatStorage) GetWalletFee(fromTime uint64, toTime uint64, freq string, reserveAddr ethereum.Address, walletAddr ethereum.Address) (common.StatTicks, error) {
+func (bss *BoltStatStorage) GetWalletFee(fromTime uint64, toTime uint64, freq string, reserveAddr ethereum.Address, walletAddr ethereum.Address) (common.StatTicks, error) {
 	result := common.StatTicks{}
 
-	err := self.db.View(func(tx *bolt.Tx) error {
+	err := bss.db.View(func(tx *bolt.Tx) error {
 		bucketName := fmt.Sprintf("%s_%s", common.AddrToString(reserveAddr), common.AddrToString(walletAddr))
 		b := tx.Bucket([]byte(bucketName))
 		if b == nil {
@@ -850,10 +850,10 @@ func (self *BoltStatStorage) GetWalletFee(fromTime uint64, toTime uint64, freq s
 //GetUserVolume returns stat data for a user Address with specific frequency in a specific time range.
 //If the data is not available, return empty result and no error.
 //If the data is corrupted , error is returned.
-func (self *BoltStatStorage) GetUserVolume(fromTime uint64, toTime uint64, freq string, ethUserAddr ethereum.Address) (common.StatTicks, error) {
+func (bss *BoltStatStorage) GetUserVolume(fromTime uint64, toTime uint64, freq string, ethUserAddr ethereum.Address) (common.StatTicks, error) {
 	result := common.StatTicks{}
 	userAddr := common.AddrToString(ethUserAddr)
-	err := self.db.View(func(tx *bolt.Tx) error {
+	err := bss.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(userAddr))
 		if b == nil {
 			log.Printf("GetUserVolume cannot find bucket %s", userAddr)
@@ -886,9 +886,9 @@ func (self *BoltStatStorage) GetUserVolume(fromTime uint64, toTime uint64, freq 
 //GetReserveVolume returns stat data for a reserve Address with specific frequency in a specific time range.
 //If the data is not available, return empty result and no error.
 //If the data is corrupted , error is returned.
-func (self *BoltStatStorage) GetReserveVolume(fromTime uint64, toTime uint64, freq string, reserveAddr, token ethereum.Address) (common.StatTicks, error) {
+func (bss *BoltStatStorage) GetReserveVolume(fromTime uint64, toTime uint64, freq string, reserveAddr, token ethereum.Address) (common.StatTicks, error) {
 	result := common.StatTicks{}
-	err := self.db.View(func(tx *bolt.Tx) error {
+	err := bss.db.View(func(tx *bolt.Tx) error {
 		bucketKey := fmt.Sprintf("%s_%s", common.AddrToString(reserveAddr), common.AddrToString(token))
 		b := tx.Bucket([]byte(bucketKey))
 		if b == nil {
@@ -923,9 +923,9 @@ func (self *BoltStatStorage) GetReserveVolume(fromTime uint64, toTime uint64, fr
 //GetTokenHeatmap returns stat data for a country as key with specific frequency in a specific time range.
 //If the data is not available, return empty result and no error.
 //If the data is corrupted , error is returned.
-func (self *BoltStatStorage) GetTokenHeatmap(fromTime, toTime uint64, key, freq string) (common.StatTicks, error) {
+func (bss *BoltStatStorage) GetTokenHeatmap(fromTime, toTime uint64, key, freq string) (common.StatTicks, error) {
 	result := common.StatTicks{}
-	err := self.db.View(func(tx *bolt.Tx) error {
+	err := bss.db.View(func(tx *bolt.Tx) error {
 		nkey := strings.ToLower(key)
 		b := tx.Bucket([]byte(nkey))
 		if b == nil {
@@ -958,9 +958,9 @@ func (self *BoltStatStorage) GetTokenHeatmap(fromTime, toTime uint64, key, freq 
 	return result, err
 }
 
-func (self *BoltStatStorage) SetTradeSummary(tradeSummary map[string]common.MetricStatsTimeZone, lastProcessTimePoint uint64) error {
+func (bss *BoltStatStorage) SetTradeSummary(tradeSummary map[string]common.MetricStatsTimeZone, lastProcessTimePoint uint64) error {
 	var err error
-	err = self.db.Update(func(tx *bolt.Tx) error {
+	err = bss.db.Update(func(tx *bolt.Tx) error {
 		for key, stats := range tradeSummary {
 			key = strings.ToLower(key)
 			b, uErr := tx.CreateBucketIfNotExists([]byte(key))
@@ -1009,10 +1009,10 @@ func (self *BoltStatStorage) SetTradeSummary(tradeSummary map[string]common.Metr
 //GetTradeSummary returns summary stat data for a timezone a specific time range.
 //If the data is not available, return empty result and no error.
 //If the data is corrupted , error is returned.
-func (self *BoltStatStorage) GetTradeSummary(fromTime uint64, toTime uint64, timezone int64) (common.StatTicks, error) {
+func (bss *BoltStatStorage) GetTradeSummary(fromTime uint64, toTime uint64, timezone int64) (common.StatTicks, error) {
 	result := common.StatTicks{}
 	tzstring := fmt.Sprintf("%s%d", stat.TimezoneBucketPrefix, timezone)
-	err := self.db.View(func(tx *bolt.Tx) error {
+	err := bss.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(stat.TradeSummaryKey))
 		if b == nil {
 			log.Printf("GetTradeSummary cannot find bucket %s", stat.TradeSummaryKey)

@@ -20,31 +20,31 @@ type ControllerTickerRunner struct {
 	signal       chan bool
 }
 
-func (self *ControllerTickerRunner) GetAnalyticStorageControlTicker() <-chan time.Time {
-	if self.ascClock == nil {
-		<-self.signal
+func (ctr *ControllerTickerRunner) GetAnalyticStorageControlTicker() <-chan time.Time {
+	if ctr.ascClock == nil {
+		<-ctr.signal
 	}
-	return self.ascClock.C
+	return ctr.ascClock.C
 }
 
-func (self *ControllerTickerRunner) GetRateStorageControlTicker() <-chan time.Time {
-	if self.rateClock == nil {
-		<-self.signal
+func (ctr *ControllerTickerRunner) GetRateStorageControlTicker() <-chan time.Time {
+	if ctr.rateClock == nil {
+		<-ctr.signal
 	}
-	return self.rateClock.C
+	return ctr.rateClock.C
 }
 
-func (self *ControllerTickerRunner) Start() error {
-	self.ascClock = time.NewTicker(self.ascDuration)
-	self.signal <- true
-	self.rateClock = time.NewTicker(self.rateDuration)
-	self.signal <- true
+func (ctr *ControllerTickerRunner) Start() error {
+	ctr.ascClock = time.NewTicker(ctr.ascDuration)
+	ctr.signal <- true
+	ctr.rateClock = time.NewTicker(ctr.rateDuration)
+	ctr.signal <- true
 	return nil
 }
 
-func (self *ControllerTickerRunner) Stop() error {
-	self.rateClock.Stop()
-	self.ascClock.Stop()
+func (ctr *ControllerTickerRunner) Stop() error {
+	ctr.rateClock.Stop()
+	ctr.ascClock.Stop()
 	return nil
 }
 

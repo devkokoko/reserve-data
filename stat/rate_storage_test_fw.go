@@ -16,7 +16,7 @@ func NewRateStorageTest(storage RateStorage) *RateStorageTest {
 	return &RateStorageTest{storage}
 }
 
-func (self *RateStorageTest) TestReserveRates() error {
+func (rst *RateStorageTest) TestReserveRates() error {
 	var err error
 	rate := common.ReserveRates{
 		Timestamp:     111,
@@ -25,11 +25,11 @@ func (self *RateStorageTest) TestReserveRates() error {
 		ToBlockNumber: 444,
 	}
 	testAsset := ethereum.HexToAddress(testAssetAddr)
-	err = self.storage.StoreReserveRates(testAsset, rate, 111)
+	err = rst.storage.StoreReserveRates(testAsset, rate, 111)
 	if err != nil {
 		return err
 	}
-	result, err := self.storage.GetReserveRates(0, 8640000, testAsset)
+	result, err := rst.storage.GetReserveRates(0, 8640000, testAsset)
 	if result == nil || len(result) < 1 {
 		return fmt.Errorf("GetReserverRates return empty result ")
 	}

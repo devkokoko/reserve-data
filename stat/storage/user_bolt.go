@@ -71,9 +71,9 @@ func NewBoltUserStorage(path string) (*BoltUserStorage, error) {
 	return storage, err
 }
 
-func (self *BoltUserStorage) SetLastProcessedCatLogTimepoint(timepoint uint64) error {
+func (bus *BoltUserStorage) SetLastProcessedCatLogTimepoint(timepoint uint64) error {
 	var err error
-	err = self.db.Update(func(tx *bolt.Tx) error {
+	err = bus.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(catlogProcessorState))
 		err = b.Put([]byte("last_timepoint"), boltutil.Uint64ToBytes(timepoint))
 		return err
@@ -81,10 +81,10 @@ func (self *BoltUserStorage) SetLastProcessedCatLogTimepoint(timepoint uint64) e
 	return err
 }
 
-func (self *BoltUserStorage) GetLastProcessedCatLogTimepoint() (uint64, error) {
+func (bus *BoltUserStorage) GetLastProcessedCatLogTimepoint() (uint64, error) {
 	var result uint64
 	var err error
-	err = self.db.View(func(tx *bolt.Tx) error {
+	err = bus.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(catlogProcessorState))
 		result = boltutil.BytesToUint64(b.Get([]byte("last_timepoint")))
 		return nil
@@ -92,9 +92,9 @@ func (self *BoltUserStorage) GetLastProcessedCatLogTimepoint() (uint64, error) {
 	return result, err
 }
 
-func (self *BoltUserStorage) UpdateAddressCategory(address ethereum.Address, cat string) error {
+func (bus *BoltUserStorage) UpdateAddressCategory(address ethereum.Address, cat string) error {
 	var err error
-	err = self.db.Update(func(tx *bolt.Tx) error {
+	err = bus.db.Update(func(tx *bolt.Tx) error {
 		// map address to category
 		b := tx.Bucket([]byte(addressCategory))
 		addrBytes := []byte(common.AddrToString(address))
@@ -136,14 +136,14 @@ func (self *BoltUserStorage) UpdateAddressCategory(address ethereum.Address, cat
 	return err
 }
 
-func (self *BoltUserStorage) UpdateUserAddresses(user string, addrs []ethereum.Address, timestamps []uint64) error {
+func (bus *BoltUserStorage) UpdateUserAddresses(user string, addrs []ethereum.Address, timestamps []uint64) error {
 	user = strings.ToLower(user)
 	addresses := []string{}
 	for _, addr := range addrs {
 		addresses = append(addresses, common.AddrToString(addr))
 	}
 	var err error
-	err = self.db.Update(func(tx *bolt.Tx) error {
+	err = bus.db.Update(func(tx *bolt.Tx) error {
 		timeBucket := tx.Bucket([]byte(addressTime))
 		for _, address := range addresses {
 			// get temp user identity
@@ -172,7 +172,7 @@ func (self *BoltUserStorage) UpdateUserAddresses(user string, addrs []ethereum.A
 		}
 		// remove old addresses from pending bucket
 		pendingBk := tx.Bucket([]byte(pendingAddresses))
-		oldAddrs, _, uErr := self.GetAddressesOfUser(user)
+		oldAddrs, _, uErr := bus.GetAddressesOfUser(user)
 		if uErr != nil {
 			return uErr
 		}
@@ -216,11 +216,11 @@ func (self *BoltUserStorage) UpdateUserAddresses(user string, addrs []ethereum.A
 }
 
 // returns lowercased category of an address
-func (self *BoltUserStorage) GetCategory(ethaddr ethereum.Address) (string, error) {
+func (bus *BoltUserStorage) GetCategory(ethaddr ethereum.Address) (string, error) {
 	addr := common.AddrToString(ethaddr)
 	var err error
 	var result string
-	err = self.db.View(func(tx *bolt.Tx) error {
+	err = bus.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(addressCategory))
 		cat := b.Get([]byte(addr))
 		result = string(cat)
@@ -229,12 +229,12 @@ func (self *BoltUserStorage) GetCategory(ethaddr ethereum.Address) (string, erro
 	return result, err
 }
 
-func (self *BoltUserStorage) GetAddressesOfUser(user string) ([]ethereum.Address, []uint64, error) {
+func (bus *BoltUserStorage) GetAddressesOfUser(user string) ([]ethereum.Address, []uint64, error) {
 	var err error
 	user = strings.ToLower(user)
 	result := []ethereum.Address{}
 	timestamps := []uint64{}
-	err = self.db.View(func(tx *bolt.Tx) error {
+	err = bus.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(idAddress))
 		timeBucket := tx.Bucket([]byte(addressTime))
 		userBucket := b.Bucket([]byte(user))
@@ -252,12 +252,12 @@ func (self *BoltUserStorage) GetAddressesOfUser(user string) ([]ethereum.Address
 }
 
 // returns lowercased user identity of the address
-func (self *BoltUserStorage) GetUserOfAddress(ethaddr ethereum.Address) (string, uint64, error) {
+func (bus *BoltUserStorage) GetUserOfAddress(ethaddr ethereum.Address) (string, uint64, error) {
 	addr := common.AddrToString(ethaddr)
 	var err error
 	var result string
 	var timestamp uint64
-	err = self.db.View(func(tx *bolt.Tx) error {
+	err = bus.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(addressID))
 		timeBucket := tx.Bucket([]byte(addressTime))
 		id := b.Get([]byte(addr))
@@ -268,9 +268,9 @@ func (self *BoltUserStorage) GetUserOfAddress(ethaddr ethereum.Address) (string,
 	return result, timestamp, err
 }
 
-func (self *BoltUserStorage) GetKycUsers() (map[string]uint64, error) {
+func (bus *BoltUserStorage) GetKycUsers() (map[string]uint64, error) {
 	result := map[string]uint64{}
-	err := self.db.View(func(tx *bolt.Tx) error {
+	err := bus.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(addressID))
 		timeBucket := tx.Bucket([]byte(addressTime))
 		c := b.Cursor()
@@ -289,10 +289,10 @@ func (self *BoltUserStorage) GetKycUsers() (map[string]uint64, error) {
 
 // GetPendingAddresses returns all of addresses that's not pushed to the chain
 // for kyced category
-func (self *BoltUserStorage) GetPendingAddresses() ([]ethereum.Address, error) {
+func (bus *BoltUserStorage) GetPendingAddresses() ([]ethereum.Address, error) {
 	var err error
 	result := []ethereum.Address{}
-	err = self.db.View(func(tx *bolt.Tx) error {
+	err = bus.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(pendingAddresses))
 		err = b.ForEach(func(k, v []byte) error {
 			result = append(result, ethereum.HexToAddress(string(k)))

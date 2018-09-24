@@ -42,10 +42,10 @@ func NewBoltRateStorage(path string) (*BoltRateStorage, error) {
 	return storage, nil
 }
 
-func (self *BoltRateStorage) StoreReserveRates(ethReserveAddr ethereum.Address, rate common.ReserveRates, timepoint uint64) error {
+func (brs *BoltRateStorage) StoreReserveRates(ethReserveAddr ethereum.Address, rate common.ReserveRates, timepoint uint64) error {
 	var err error
 	reserveAddr := common.AddrToString(ethReserveAddr)
-	err = self.db.Update(func(tx *bolt.Tx) error {
+	err = brs.db.Update(func(tx *bolt.Tx) error {
 		b, _ := tx.CreateBucketIfNotExists([]byte(reserveAddr))
 		c := b.Cursor()
 		var prevDataJSON common.ReserveRates
@@ -68,14 +68,14 @@ func (self *BoltRateStorage) StoreReserveRates(ethReserveAddr ethereum.Address, 
 	return err
 }
 
-func (self *BoltRateStorage) GetReserveRates(fromTime, toTime uint64, ethReserveAddr ethereum.Address) ([]common.ReserveRates, error) {
+func (brs *BoltRateStorage) GetReserveRates(fromTime, toTime uint64, ethReserveAddr ethereum.Address) ([]common.ReserveRates, error) {
 	var err error
 	reserveAddr := common.AddrToString(ethReserveAddr)
 	var result []common.ReserveRates
 	if toTime-fromTime > maxGetRatesPeriod {
 		return result, fmt.Errorf("Time range is too broad, it must be smaller or equal to %d miliseconds", maxGetRatesPeriod)
 	}
-	err = self.db.Update(func(tx *bolt.Tx) error {
+	err = brs.db.Update(func(tx *bolt.Tx) error {
 		b, uErr := tx.CreateBucketIfNotExists([]byte(reserveAddr))
 		if uErr != nil {
 			return uErr

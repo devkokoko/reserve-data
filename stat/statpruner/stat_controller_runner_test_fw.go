@@ -10,13 +10,13 @@ func NewControllerRunnerTest(controllerRunner ControllerRunner) *ControllerRunne
 	return &ControllerRunnerTest{controllerRunner}
 }
 
-func (self *ControllerRunnerTest) TestAnalyticStorageControlTicker(nanosec int64) error {
-	if err := self.cr.Start(); err != nil {
+func (crt *ControllerRunnerTest) TestAnalyticStorageControlTicker(nanosec int64) error {
+	if err := crt.cr.Start(); err != nil {
 		return err
 	}
-	t := <-self.cr.GetAnalyticStorageControlTicker()
+	t := <-crt.cr.GetAnalyticStorageControlTicker()
 	log.Printf("ticked: %s", t.String())
-	if err := self.cr.Stop(); err != nil {
+	if err := crt.cr.Stop(); err != nil {
 		return err
 	}
 	return nil

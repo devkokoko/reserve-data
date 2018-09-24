@@ -55,10 +55,10 @@ func NewBoltFeeSetRateStorage(path string) (*BoltFeeSetRateStorage, error) {
 	return storage, err
 }
 
-func (self *BoltFeeSetRateStorage) GetLastBlockChecked() (uint64, error) {
+func (boltFeeSetRate *BoltFeeSetRateStorage) GetLastBlockChecked() (uint64, error) {
 	var latestBlockChecked uint64
 	var err error
-	err = self.db.Update(func(tx *bolt.Tx) error {
+	err = boltFeeSetRate.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(transactionInfoBucket))
 		c := b.Cursor()
 		k, _ := c.Last()
@@ -75,9 +75,9 @@ func (self *BoltFeeSetRateStorage) GetLastBlockChecked() (uint64, error) {
 	return latestBlockChecked, nil
 }
 
-func (self *BoltFeeSetRateStorage) StoreTransaction(txs []common.SetRateTxInfo) error {
+func (boltFeeSetRate *BoltFeeSetRateStorage) StoreTransaction(txs []common.SetRateTxInfo) error {
 	var err error
-	err = self.db.Update(func(tx *bolt.Tx) error {
+	err = boltFeeSetRate.db.Update(func(tx *bolt.Tx) error {
 		var dataJSON []byte
 		b := tx.Bucket([]byte(transactionInfoBucket))
 		bIndex := tx.Bucket([]byte(indexedTimestampBucket))
@@ -146,7 +146,7 @@ func storeTotalGasSpent(b *bolt.Bucket, storeTx common.StoreSetRateTx) error {
 	return err
 }
 
-func (self *BoltFeeSetRateStorage) GetFeeSetRateByDay(fromTime, toTime uint64) ([]common.FeeSetRate, error) {
+func (boltFeeSetRate *BoltFeeSetRateStorage) GetFeeSetRateByDay(fromTime, toTime uint64) ([]common.FeeSetRate, error) {
 	var seqFeeSetRate []common.FeeSetRate
 	fromTimeSecond := fromTime / 1000
 	toTimeSecond := toTime / 1000
@@ -155,7 +155,7 @@ func (self *BoltFeeSetRateStorage) GetFeeSetRateByDay(fromTime, toTime uint64) (
 	}
 
 	var err error
-	err = self.db.View(func(tx *bolt.Tx) error {
+	err = boltFeeSetRate.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(transactionInfoBucket))
 		bIndex := tx.Bucket([]byte(indexedTimestampBucket))
 		c := b.Cursor()
