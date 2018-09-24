@@ -30,61 +30,61 @@ type TickerRunner struct {
 	signal              chan bool
 }
 
-func (self *TickerRunner) GetBlockTicker() <-chan time.Time {
-	if self.blockClock == nil {
-		<-self.signal
+func (t *TickerRunner) GetBlockTicker() <-chan time.Time {
+	if t.blockClock == nil {
+		<-t.signal
 	}
-	return self.blockClock.C
+	return t.blockClock.C
 }
 
-func (self *TickerRunner) GetLogTicker() <-chan time.Time {
-	if self.logClock == nil {
-		<-self.signal
+func (t *TickerRunner) GetLogTicker() <-chan time.Time {
+	if t.logClock == nil {
+		<-t.signal
 	}
-	return self.logClock.C
+	return t.logClock.C
 }
 
-func (self *TickerRunner) GetReserveRatesTicker() <-chan time.Time {
-	if self.rateClock == nil {
-		<-self.signal
+func (t *TickerRunner) GetReserveRatesTicker() <-chan time.Time {
+	if t.rateClock == nil {
+		<-t.signal
 	}
-	return self.rateClock.C
+	return t.rateClock.C
 }
 
-func (self *TickerRunner) GetTradeLogProcessorTicker() <-chan time.Time {
-	if self.tlogProcessClock == nil {
-		<-self.signal
+func (t *TickerRunner) GetTradeLogProcessorTicker() <-chan time.Time {
+	if t.tlogProcessClock == nil {
+		<-t.signal
 	}
-	return self.tlogProcessClock.C
+	return t.tlogProcessClock.C
 }
 
-func (self *TickerRunner) GetCatLogProcessorTicker() <-chan time.Time {
-	if self.clogProcessClock == nil {
-		<-self.signal
+func (t *TickerRunner) GetCatLogProcessorTicker() <-chan time.Time {
+	if t.clogProcessClock == nil {
+		<-t.signal
 	}
-	return self.clogProcessClock.C
+	return t.clogProcessClock.C
 }
 
-func (self *TickerRunner) Start() error {
-	self.blockClock = time.NewTicker(self.blockDuration)
-	self.signal <- true
-	self.logClock = time.NewTicker(self.logDuration)
-	self.signal <- true
-	self.rateClock = time.NewTicker(self.rateDuration)
-	self.signal <- true
-	self.tlogProcessClock = time.NewTicker(self.tlogProcessDuration)
-	self.signal <- true
-	self.clogProcessClock = time.NewTicker(self.clogProcessDuration)
-	self.signal <- true
+func (t *TickerRunner) Start() error {
+	t.blockClock = time.NewTicker(t.blockDuration)
+	t.signal <- true
+	t.logClock = time.NewTicker(t.logDuration)
+	t.signal <- true
+	t.rateClock = time.NewTicker(t.rateDuration)
+	t.signal <- true
+	t.tlogProcessClock = time.NewTicker(t.tlogProcessDuration)
+	t.signal <- true
+	t.clogProcessClock = time.NewTicker(t.clogProcessDuration)
+	t.signal <- true
 	return nil
 }
 
-func (self *TickerRunner) Stop() error {
-	self.blockClock.Stop()
-	self.logClock.Stop()
-	self.rateClock.Stop()
-	self.tlogProcessClock.Stop()
-	self.clogProcessClock.Stop()
+func (t *TickerRunner) Stop() error {
+	t.blockClock.Stop()
+	t.logClock.Stop()
+	t.rateClock.Stop()
+	t.tlogProcessClock.Stop()
+	t.clogProcessClock.Stop()
 	return nil
 }
 

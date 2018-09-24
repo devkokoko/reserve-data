@@ -7,19 +7,19 @@ import (
 type TestReserveData struct {
 }
 
-func (self TestReserveData) CurrentPriceVersion() common.Version {
+func (tsd TestReserveData) CurrentPriceVersion() common.Version {
 	return common.Version(0)
 }
 
-func (self TestReserveData) GetAllPrices() (common.AllPriceResponse, error) {
+func (tsd TestReserveData) GetAllPrices() (common.AllPriceResponse, error) {
 	return common.AllPriceResponse{}, nil
 }
 
-func (self TestReserveData) GetOnePrice(common.TokenPairID) (common.OnePriceResponse, error) {
+func (tsd TestReserveData) GetOnePrice(common.TokenPairID) (common.OnePriceResponse, error) {
 	return common.OnePriceResponse{}, nil
 }
 
-func (self TestReserveData) Run() error {
+func (tsd TestReserveData) Run() error {
 	return nil
 }
 

@@ -113,7 +113,7 @@ func getFirstRecordTimestamp(tx *bolt.Tx) (uint64, error) {
 	})
 	return result, err
 }
-func (self *BoltRateStorage) ExportExpiredRateData(currentTime uint64, fileName string) (fromTime uint64, toTime uint64, nRecord uint64, err error) {
+func (brs *BoltRateStorage) ExportExpiredRateData(currentTime uint64, fileName string) (fromTime uint64, toTime uint64, nRecord uint64, err error) {
 	expiredTimestampByte := boltutil.Uint64ToBytes(currentTime - rateExpired)
 	outFile, err := os.Create(fileName)
 	if err != nil {
@@ -129,7 +129,7 @@ func (self *BoltRateStorage) ExportExpiredRateData(currentTime uint64, fileName 
 			log.Printf("Expire file close error: %s", cErr.Error())
 		}
 	}()
-	err = self.db.View(func(tx *bolt.Tx) error {
+	err = brs.db.View(func(tx *bolt.Tx) error {
 		var vErr error
 		fromTime, vErr = getFirstRecordTimestamp(tx)
 		if vErr != nil {
@@ -170,9 +170,9 @@ func (self *BoltRateStorage) ExportExpiredRateData(currentTime uint64, fileName 
 	})
 	return fromTime, toTime, nRecord, err
 }
-func (self *BoltRateStorage) PruneExpiredReserveRateData(toTime uint64) (nRecord uint64, err error) {
+func (brs *BoltRateStorage) PruneExpiredReserveRateData(toTime uint64) (nRecord uint64, err error) {
 	toTimeByte := boltutil.Uint64ToBytes(toTime)
-	err = self.db.Update(func(tx *bolt.Tx) error {
+	err = brs.db.Update(func(tx *bolt.Tx) error {
 		bucketLoopErr := tx.ForEach(func(name []byte, b *bolt.Bucket) error {
 			c := b.Cursor()
 			for k, _ := c.First(); k != nil && bytes.Compare(k, toTimeByte) <= 0; k, _ = c.Next() {
